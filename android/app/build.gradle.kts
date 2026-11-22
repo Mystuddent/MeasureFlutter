@@ -31,9 +31,27 @@ android {
 
     buildTypes {
         release {
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+        }
+    }
+}
+
+// Android Studio 的签名向导输出带版本号的文件名；Flutter CLI 保留默认文件名。
+if (providers.gradleProperty("android.injected.invoked.from.ide").orNull == "true") {
+    androidComponents {
+        onVariants(selector().withBuildType("release")) { variant ->
+            variant.outputs.forEach { output ->
+                val version = output.versionName.orElse("unknown")
+                val code = output.versionCode.orElse(0)
+                val filters = output.filters.joinToString("") { "-${it.identifier}" }
+                (output as com.android.build.api.variant.impl.VariantOutputImpl)
+                    .outputFileName.set(version.zip(code) { name, number ->
+                        "MeasureFlutter-v$name-$number$filters-release.apk"
+                    })
+            }
         }
     }
 }

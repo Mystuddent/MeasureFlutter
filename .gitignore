@@ -29,6 +29,7 @@ migrate_working_dir/
 android-ndk-r28c/
 amap.local.json
 *.jks
+/measurejks
 *.keystore
 *.p12
 *.pfx
@@ -45,6 +46,8 @@ local.properties
 .pub-cache/
 .pub/
 /build/
+/android/build/
+/android/gradle/gradle-daemon-jvm.properties
 /coverage/
 
 # Symbolication related

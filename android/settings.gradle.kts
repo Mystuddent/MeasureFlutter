@@ -23,4 +23,24 @@ plugins {
     id("org.jetbrains.kotlin.android") version "2.4.0" apply false
 }
 
+// 签名向导没有 Flutter 的运行参数时，从本机配置读取 Key。
+// 显式传入的 --dart-define / --dart-define-from-file 始终优先。
+val localAmapConfig = file("../amap.local.json")
+if (!gradle.startParameter.projectProperties.containsKey("dart-defines") && localAmapConfig.isFile) {
+    val values = groovy.json.JsonSlurper().parse(localAmapConfig) as Map<*, *>
+    val defines = values.entries.mapNotNull { (key, value) ->
+        if (key is String && value is String && value.isNotBlank()) {
+            java.util.Base64.getEncoder().encodeToString("$key=$value".toByteArray(Charsets.UTF_8))
+        } else null
+    }
+    if (defines.isNotEmpty()) {
+        val encodedDefines = defines.joinToString(",")
+        gradle.beforeProject {
+            if (!hasProperty("dart-defines")) {
+                extensions.extraProperties.set("dart-defines", encodedDefines)
+            }
+        }
+    }
+}
+
 include(":app")
